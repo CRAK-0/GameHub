@@ -33,3 +33,15 @@ export async function getGames() {
     };
   });
 }
+
+export async function getGame(id) {
+  try {
+    return await request(`game?id=${id}`);
+  } catch (error) {
+    if (error.message.includes("404")) {
+      return null;
+    }
+
+    throw error;
+  }
+}

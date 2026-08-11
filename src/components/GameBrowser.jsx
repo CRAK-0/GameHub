@@ -1,19 +1,49 @@
 "use client";
 
 import FreeGameCard from "./FreeGameCard";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 function GameBrowser({ games }) {
-  const [search, setSearch] = useState("");
-  const [genre, setGenre] = useState("All");
-  const [sort, setSort] = useState("default");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const search = searchParams.get("search") || "";
+  const [searchInput, setSearchInput] = useState(search);
+  const genre = searchParams.get("genre") || "";
+
+  const genres = [...new Set(games.flatMap((game) => game.genres))];
+
+  const sort = searchParams.get("sort") || "default";
+
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (searchInput) {
+        params.set("search", searchInput);
+      } else {
+        params.delete("search");
+      }
+
+      router.replace(`/?${params.toString()}`);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const filteredGames = games.filter((game) => {
     const matchesSearch = game.name
       .toLowerCase()
       .includes(search.toLowerCase());
 
-    const matchesGenre = genre === "All" || game.genres.includes(genre);
+    const matchesGenre =
+      genre === "" ||
+      game.genres.some((item) => item.toLowerCase() === genre.toLowerCase());
 
     return matchesSearch && matchesGenre;
   });
@@ -40,23 +70,35 @@ function GameBrowser({ games }) {
     );
   }
 
-  const genres = ["All", ...new Set(games.map((game) => game.genres[0]))];
-
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <input
         type="text"
         placeholder="Enter the Game Name"
         className="mb-8 h-12 w-full max-w-md rounded-lg border border-zinc-700 bg-zinc-900 px-4 text-base text-white outline-none placeholder:text-zinc-500 focus:border-purple-500"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
       />
 
       <select
         value={genre}
-        onChange={(e) => setGenre(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+
+          const params = new URLSearchParams(searchParams.toString());
+
+          if (value) {
+            params.set("genre", value);
+          } else {
+            params.delete("genre");
+          }
+
+          router.push(`/?${params.toString()}`);
+        }}
         className="h-12 ml-4 rounded-lg border border-zinc-700 bg-zinc-900 px-4 text-white outline-none focus:border-purple-500"
       >
+        <option value="">All Genres</option>
+
         {genres.map((item) => (
           <option key={item} value={item}>
             {item}
@@ -66,7 +108,19 @@ function GameBrowser({ games }) {
 
       <select
         value={sort}
-        onChange={(e) => setSort(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+
+          const params = new URLSearchParams(searchParams.toString());
+
+          if (value === "default") {
+            params.delete("sort");
+          } else {
+            params.set("sort", value);
+          }
+
+          router.push(`/?${params.toString()}`);
+        }}
         className="h-12 ml-4 rounded-lg border border-zinc-700 bg-zinc-900 px-4 text-white outline-none focus:border-purple-500"
       >
         <option value="default">Default</option>
