@@ -1,18 +1,17 @@
 "use client";
 
-import FreeGameCard from "./FreeGameCard";
+import GameCard from "./GameCard";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
-function GameBrowser({ games }) {
+function GameBrowser({ games, genres, currentPage, totalGames }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const totalPages = Math.ceil(totalGames / 20);
 
   const search = searchParams.get("search") || "";
   const [searchInput, setSearchInput] = useState(search);
   const genre = searchParams.get("genre") || "";
-
-  const genres = [...new Set(games.flatMap((game) => game.genres))];
 
   const sort = searchParams.get("sort") || "default";
 
@@ -30,25 +29,15 @@ function GameBrowser({ games }) {
         params.delete("search");
       }
 
+      params.delete("page");
+
       router.replace(`/?${params.toString()}`);
     }, 300);
 
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const filteredGames = games.filter((game) => {
-    const matchesSearch = game.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesGenre =
-      genre === "" ||
-      game.genres.some((item) => item.toLowerCase() === genre.toLowerCase());
-
-    return matchesSearch && matchesGenre;
-  });
-
-  const sortedGames = [...filteredGames];
+  const sortedGames = [...games];
 
   if (sort === "az") {
     sortedGames.sort((a, b) => a.name.localeCompare(b.name));
@@ -59,15 +48,11 @@ function GameBrowser({ games }) {
   }
 
   if (sort === "newest") {
-    sortedGames.sort(
-      (a, b) => new Date(b.release_date) - new Date(a.release_date),
-    );
+    sortedGames.sort((a, b) => new Date(b.released) - new Date(a.released));
   }
 
   if (sort === "oldest") {
-    sortedGames.sort(
-      (a, b) => new Date(a.release_date) - new Date(b.release_date),
-    );
+    sortedGames.sort((a, b) => new Date(a.released) - new Date(b.released));
   }
 
   return (
@@ -93,15 +78,16 @@ function GameBrowser({ games }) {
             params.delete("genre");
           }
 
+          params.delete("page");
+
           router.push(`/?${params.toString()}`);
         }}
         className="h-12 ml-4 rounded-lg border border-zinc-700 bg-zinc-900 px-4 text-white outline-none focus:border-purple-500"
       >
         <option value="">All Genres</option>
-
-        {genres.map((item) => (
-          <option key={item} value={item}>
-            {item}
+        {genres.map((genre) => (
+          <option key={genre.id} value={genre.slug}>
+            {genre.name}
           </option>
         ))}
       </select>
@@ -132,9 +118,46 @@ function GameBrowser({ games }) {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {sortedGames.map((game) => (
-          <FreeGameCard key={game.id} game={game} />
+          <GameCard key={game.id} game={game} />
         ))}
       </div>
+      <div className="mt-12 flex items-center justify-center gap-3">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => {
+            const params = new URLSearchParams(searchParams.toString());
+
+            params.set("page", currentPage - 1);
+
+            router.push(`/?${params.toString()}`);
+          }}
+          className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+        >
+          ←
+        </button>
+
+        <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 px-5 py-2.5 text-sm font-medium text-purple-400">
+          {currentPage}
+        </div>
+
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => {
+            const params = new URLSearchParams(searchParams.toString());
+
+            params.set("page", currentPage + 1);
+
+            router.push(`/?${params.toString()}`);
+          }}
+          className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+        >
+          →
+        </button>
+      </div>
+
+      <p className="mt-3 text-center text-xs text-zinc-600">
+        Page {currentPage} of {totalPages}
+      </p>
     </div>
   );
 }

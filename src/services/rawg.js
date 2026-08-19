@@ -1,4 +1,4 @@
-import { mockGames } from "./mockGames";
+// import { mockGames } from "./mockGames";
 
 const BASE_URL = "https://api.rawg.io/api";
 
@@ -26,10 +26,30 @@ async function request(endpoint) {
   return data;
 }
 
-// export async function getGames(page = 1) {
-//   return request(`games?page=${page}`);
-// }
+export async function getGames(page = 1, search = "", genre = "") {
+  let endpoint = `games?page=${page}`;
 
-export async function getGames(page = 1) {
-  return mockGames;
+  if (search) {
+    endpoint += `&search=${encodeURIComponent(search)}`;
+  }
+
+  if (genre) {
+    endpoint += `&genres=${genre}`;
+  }
+
+  return request(endpoint);
 }
+
+export async function getGame(id) {
+  return request(`games/${id}`);
+}
+
+export async function getGenres() {
+  const data = await request("genres");
+
+  return data.results;
+}
+
+// export async function getGames(page = 1) {
+//   return mockGames;
+// }
