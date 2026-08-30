@@ -13,4 +13,7 @@ const pool = new Pool({
   password: process.env.DB_PASS,
 });
 
+const result = await pool.query("SELECT * FROM users");
+console.log(result.rows);
+
 export default pool;

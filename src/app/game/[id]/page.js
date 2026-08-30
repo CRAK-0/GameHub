@@ -1,6 +1,8 @@
-import { getGame } from "@/services/rawg.js";
+import { getGame, getReviews } from "@/services/backend.js";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import ReviewList from "@/components/ReviewList.jsx";
+import ReviewForm from "@/components/ReviewForm.jsx";
 
 export default async function GameDetails({ params }) {
   const { id } = await params;
@@ -10,6 +12,8 @@ export default async function GameDetails({ params }) {
   if (!game) {
     notFound();
   }
+
+  const reviews = await getReviews(id);
 
   return (
     <main className="min-h-screen bg-zinc-950 px-4 py-8 text-white sm:px-6">
@@ -40,7 +44,7 @@ export default async function GameDetails({ params }) {
             {/* Hero content */}
             <div className="absolute bottom-0 left-0 p-7 sm:p-10 lg:p-12">
               <span className="mb-4 inline-block rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-purple-400">
-                {game.genres.map((genre) => genre.name).join(" • ")}
+                {game.genres.join(" • ")}
               </span>
 
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -64,7 +68,7 @@ export default async function GameDetails({ params }) {
                 Platforms
               </p>
               <p className="mt-1 text-sm font-medium text-zinc-200">
-                {game.platforms.map((item) => item.platform.name).join(" • ")}
+                {game.platforms.join(" • ")}
               </p>
             </div>
 
@@ -82,7 +86,7 @@ export default async function GameDetails({ params }) {
                 Developer
               </p>
               <p className="mt-1 text-sm font-medium text-zinc-200">
-                {game.developers.map((developer) => developer.name).join(", ")}
+                {game.developers.join(", ")}
               </p>
             </div>
 
@@ -91,7 +95,7 @@ export default async function GameDetails({ params }) {
                 Publisher
               </p>
               <p className="mt-1 text-sm font-medium text-zinc-200">
-                {game.publishers.map((publisher) => publisher.name).join(", ")}
+                {game.publishers.join(", ")}
               </p>
             </div>
           </div>
@@ -102,9 +106,13 @@ export default async function GameDetails({ params }) {
           <h2 className="text-xl font-semibold">About the Game</h2>
 
           <p className="mt-5 max-w-4xl whitespace-pre-line text-base leading-8 text-zinc-400">
-            {game.description_raw}
+            {game.description}
           </p>
         </section>
+
+        <ReviewList reviews={reviews} />
+
+        <ReviewForm gameId={id} />
 
         {/* Actions */}
         <section className="mt-8 flex flex-wrap gap-3">
