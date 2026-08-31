@@ -13,3 +13,18 @@ export const getCurrentUser = async () => {
 
   return data;
 };
+
+export const logoutUser = async () => {
+  const response = await fetch("http://localhost:3000/api/v1/users/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Logout failed");
+  }
+
+  return data;
+};

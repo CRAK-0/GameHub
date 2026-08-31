@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser } from "@/services/auth.js";
+import { useAuth } from "@/context/AuthContext.jsx";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   // states here
@@ -12,6 +13,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
 
   // handleSubmit here
 
@@ -41,9 +44,9 @@ export default function LoginPage() {
         return;
       }
 
-      const user = await getCurrentUser();
+      login(data);
 
-      console.log("CURRENT USER: ", user);
+      router.push("/");
     } catch (error) {
       setError("Network error");
     } finally {
@@ -77,13 +80,23 @@ export default function LoginPage() {
         <div className="mt-4">
           <label className="text-sm text-zinc-300">Password</label>
 
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm outline-none"
-          />
+          <div className="relative mt-2">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 pr-12 text-sm outline-none focus:border-purple-500"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-0 top-0 flex h-full w-12 items-center justify-center text-zinc-400 hover:text-white"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}

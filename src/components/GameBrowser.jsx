@@ -3,6 +3,7 @@
 import GameCard from "./GameCard";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { getFavorites } from "@/services/favorite.js";
 
 function GameBrowser({ games, genres, currentPage, totalGames }) {
   const searchParams = useSearchParams();
@@ -11,6 +12,7 @@ function GameBrowser({ games, genres, currentPage, totalGames }) {
 
   const search = searchParams.get("search") || "";
   const [searchInput, setSearchInput] = useState(search);
+  const [favoriteIds, setFavoriteIds] = useState([]);
   const genre = searchParams.get("genre") || "";
 
   const sort = searchParams.get("sort") || "default";
@@ -36,6 +38,22 @@ function GameBrowser({ games, genres, currentPage, totalGames }) {
 
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const data = await getFavorites();
+
+        const ids = data.favorites.map((favorite) => String(favorite.rawg_id));
+
+        setFavoriteIds(ids);
+      } catch (error) {
+        console.error("Favourites error:", error);
+      }
+    };
+
+    loadFavorites();
+  }, []);
 
   const sortedGames = [...games];
 
@@ -118,7 +136,11 @@ function GameBrowser({ games, genres, currentPage, totalGames }) {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {sortedGames.map((game) => (
-          <GameCard key={game.id} game={game} />
+          <GameCard
+            key={game.id}
+            game={game}
+            isFavorite={favoriteIds.includes(String(game.id))}
+          />
         ))}
       </div>
       <div className="mt-12 flex items-center justify-center gap-3">
