@@ -51,7 +51,7 @@ export default function GameCard({ game, isFavorite: initialFavorite }) {
         />
       </button>
 
-      <Link href={`/game/${game.id}`}>
+      <Link href={`/game/${game.id}`} className="block">
         <Image
           src={game.background_image}
           alt={game.name}
@@ -61,21 +61,8 @@ export default function GameCard({ game, isFavorite: initialFavorite }) {
           className="h-80 w-full object-cover"
         />
 
-        <div className="space-y-2 p-4">
+        <div className="p-4">
           <h2 className="text-lg font-semibold text-white">{game.name}</h2>
-
-          <p className="text-sm text-zinc-400">⭐ {game.rating}</p>
-
-          <div className="flex flex-wrap gap-2">
-            {game.genres.map((genre) => (
-              <span
-                key={genre.id}
-                className="rounded-full bg-zinc-800 px-3 py-1 text-xs text-zinc-300"
-              >
-                {genre.name}
-              </span>
-            ))}
-          </div>
         </div>
       </Link>
     </article>
